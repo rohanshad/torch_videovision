@@ -10,6 +10,34 @@ import torch
 from . import functional as F
 
 
+class FromTorchTensor(object):
+    """
+    Converts torch tensor (m,C,H,W) into a list of numpy.ndarrays (h,w,c)
+    Useful when working with torchvision datasets / pre-existing data loaders
+
+    """
+
+    def __init__(self, nchannels, frame_index, channel_index):
+        self.nchannels = nchannels
+        self.frame_index = frame_index
+        self.channel_index = channel_index
+
+    def __call__(self, torch_tensor):
+        tensor_ndarray = torch_tensor.numpy()
+
+        if self.frame_index == 0 and self.channel_index == 3:
+            clip = list(tensor_ndarray.transpose(0,1,2,3))
+
+        else if self.frame_index == 1 and self.channel_index == 0:
+            clip = list(tensor_ndarray.transpose(1,2,3,0))
+
+        if clip[0].shape[2] == self.nchannels:
+            return clip
+
+        else:
+            raise ValueError('Expected ', self.nchannels, ' channel input tensor, got tensor size: 'clip[0].shape)
+
+
 class Compose(object):
     """Composes several transforms
 
